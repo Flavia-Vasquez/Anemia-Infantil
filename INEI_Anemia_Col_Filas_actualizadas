@@ -1,1 +1,108 @@
+import pandas as pd
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+# Configurar el controlador de Chrome
+driver = webdriver.Chrome()
+
+# Abrir la página web
+driver.get("https://systems.inei.gob.pe/SIRTOD/app/consulta")
+
+# Esperar a que la página cargue completamente
+wait = WebDriverWait(driver, 25)
+
+# Paso 1: Esperar a que el loader desaparezca
+wait.until(EC.invisibility_of_element_located((By.ID, "loader")))
+
+# Paso 2: Hacer clic en el campo "Buscar indicador"
+search_field = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="indicador-cajatexto"]')))
+ActionChains(driver).move_to_element(search_field).perform()
+search_field.click()
+
+# Paso 3: Escribir "anemia" en el campo de búsqueda
+search_field.send_keys("anemia")
+search_field.send_keys(Keys.RETURN)
+
+# Paso 4: Hacer clic en los checkboxes correspondientes
+checkboxes = [
+    '//*[@id="nodoh17779"]/img',
+    '//*[@id="nodoh17780"]/img',
+    '//*[@id="nodoh17781"]/img',
+    '//*[@id="nodoh17782"]/img'
+]
+
+for checkbox_xpath in checkboxes:
+    checkbox = wait.until(EC.element_to_be_clickable((By.XPATH, checkbox_xpath)))
+    checkbox.click()
+
+# Paso 5: Hacer clic en el botón de "Ejecutar"
+ejecutar_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="ubigeo-ejecutar"]/button')))
+ejecutar_button.click()
+
+# Paso 6: Extraer la tabla que aparece después de aplicar los filtros
+table = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "pvtTable")))
+rows = table.find_elements(By.TAG_NAME, "tr")
+
+# Crear una lista para almacenar los datos
+data = [[cell.text for cell in row.find_elements(By.TAG_NAME, "td")] for row in rows if row.find_elements(By.TAG_NAME, "td")]
+
+# Convertir los datos en un DataFrame de pandas y eliminar la última columna vacía
+df = pd.DataFrame(data).iloc[:, :-1]
+
+# Definir los encabezados manualmente (para las 18 columnas restantes)
+headers = [2000, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]
+
+# Verificar que el número de columnas coincida con los encabezados
+if df.shape[1] == len(headers):
+    df.columns = headers
+else:
+    print("El número de columnas en el DataFrame no coincide con la cantidad de encabezados proporcionados.")
+
+# Agregar las dos nuevas columnas al lado izquierdo
+df.insert(0, 'Departamento', '')
+df.insert(1, 'Indicador Anemia %', '')
+
+# Lista de departamentos
+departamentos = [
+    "AMAZONAS", "ÁNCASH", "APURÍMAC", "AREQUIPA", "AYACUCHO", "CAJAMARCA", 
+    "CALLAO", "CUSCO", "HUANCAVELICA", "HUÁNUCO", "ICA", "JUNÍN", 
+    "LA LIBERTAD", "LAMBAYEQUE", "LIMA", "LORETO", "MADRE DE DIOS", "MOQUEGUA", 
+    "PASCO", "PIURA", "PUNO", "SAN MARTÍN", "TACNA", "TUMBES", 
+    "UCAYALI", "LIMA METROPOLITANA 1/", "LIMA 2/"
+]
+
+# Asignar nombres de departamentos
+row_idx = 0
+for departamento in departamentos:
+    if departamento == "LIMA METROPOLITANA 1/":
+        # Excepción para "LIMA METROPOLITANA 1/"
+        df.loc[row_idx:row_idx+2, 'Departamento'] = departamento
+        row_idx += 3
+    else:
+        df.loc[row_idx:row_idx+3, 'Departamento'] = departamento
+        row_idx += 4
+
+# Llenar la columna 'Indicador Anemia %' con el patrón, omitiendo "Severa" para Lima Metropolitana
+indicadores = ["Leve", "Moderada", "Severa", "Total"]
+indicator_idx = 0
+
+for idx in range(df.shape[0]):
+    if df.at[idx, 'Departamento'] == "LIMA METROPOLITANA 1/" and indicator_idx == 2:
+        # Saltar "Severa" para Lima Metropolitana
+        indicator_idx += 1
+    df.at[idx, 'Indicador Anemia %'] = indicadores[indicator_idx]
+    indicator_idx = (indicator_idx + 1) % 4  # Reiniciar el patrón cada 4 indicadores
+
+# Eliminar filas adicionales innecesarias
+df.drop(index=df.index[[107, 108]], inplace=True)
+
+# Mostrar el DataFrame final
+print(df)
+
+# Cerrar el navegador
+driver.quit()
 
