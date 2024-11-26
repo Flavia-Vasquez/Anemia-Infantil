@@ -66,6 +66,53 @@ for row in rows:
 # Convertir los datos en un DataFrame de pandas
 df = pd.DataFrame(data)
 
+# Definir los encabezados manualmente (para las 18 columnas restantes)
+headers = [2000, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]
+
+# Verificar que el número de columnas coincida con los encabezados
+if df.shape[1] == len(headers):
+    df.columns = headers
+else:
+    print("El número de columnas en el DataFrame no coincide con la cantidad de encabezados proporcionados.")
+
+# Agregar las dos nuevas columnas al lado izquierdo
+df.insert(0, 'Departamento', '')
+df.insert(1, 'Indicador Anemia %', '')
+
+# Lista de departamentos
+departamentos = [
+    "AMAZONAS", "ÁNCASH", "APURÍMAC", "AREQUIPA", "AYACUCHO", "CAJAMARCA", 
+    "CALLAO", "CUSCO", "HUANCAVELICA", "HUÁNUCO", "ICA", "JUNÍN", 
+    "LA LIBERTAD", "LAMBAYEQUE", "LIMA", "LORETO", "MADRE DE DIOS", "MOQUEGUA", 
+    "PASCO", "PIURA", "PUNO", "SAN MARTÍN", "TACNA", "TUMBES", 
+    "UCAYALI", "LIMA METROPOLITANA 1/", "LIMA 2/"
+]
+
+# Asignar nombres de departamentos
+row_idx = 0
+for departamento in departamentos:
+    if departamento == "LIMA METROPOLITANA 1/":
+        # Excepción para "LIMA METROPOLITANA 1/"
+        df.loc[row_idx:row_idx+2, 'Departamento'] = departamento
+        row_idx += 3
+    else:
+        df.loc[row_idx:row_idx+3, 'Departamento'] = departamento
+        row_idx += 4
+
+# Llenar la columna 'Indicador Anemia %' con el patrón, omitiendo "Severa" para Lima Metropolitana
+indicadores = ["Leve", "Moderada", "Severa", "Total"]
+indicator_idx = 0
+
+for idx in range(df.shape[0]):
+    if df.at[idx, 'Departamento'] == "LIMA METROPOLITANA 1/" and indicator_idx == 2:
+        # Saltar "Severa" para Lima Metropolitana
+        indicator_idx += 1
+    df.at[idx, 'Indicador Anemia %'] = indicadores[indicator_idx]
+    indicator_idx = (indicator_idx + 1) % 4  # Reiniciar el patrón cada 4 indicadores
+
+# Eliminar filas adicionales innecesarias
+df.drop(index=df.index[[107, 108]], inplace=True)
+
 # Mostrar el DataFrame
 print(df)
 
