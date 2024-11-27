@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -19,30 +20,25 @@ wait = WebDriverWait(driver, 25)
 wait.until(EC.invisibility_of_element_located((By.ID, "loader")))
 
 # Paso 2: Hacer clic en el campo "Buscar indicador"
-search_field = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="indicador-cajatexto"]')))  # Ajusta el XPath si es necesario
-
-# Desplazar hacia el campo de búsqueda si es necesario
+search_field = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="indicador-cajatexto"]')))
 ActionChains(driver).move_to_element(search_field).perform()
-
-# Hacer clic en el campo de búsqueda
 search_field.click()
 
 # Paso 3: Escribir "anemia" en el campo de búsqueda
 search_field.send_keys("anemia")
 search_field.send_keys(Keys.RETURN)  # Presionar Enter para realizar la búsqueda
 
-# Paso 4: Esperar y hacer clic en los checkbox requeridos
-first_checkbox = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="nodoh17779"]/img')))  # Ajusta el XPath si es necesario
-first_checkbox.click()
+# Paso 4: Hacer clic en los checkboxes correspondientes
+checkboxes = [
+    '//*[@id="nodoh17779"]/img',
+    '//*[@id="nodoh17780"]/img',
+    '//*[@id="nodoh17781"]/img',
+    '//*[@id="nodoh17782"]/img'
+]
 
-second_checkbox = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="nodoh17780"]/img')))  # Ajusta el XPath si es necesario
-second_checkbox.click()
-
-third_checkbox = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="nodoh17781"]/img')))  # Ajusta el XPath si es necesario
-third_checkbox.click()
-
-fourth_checkbox = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="nodoh17782"]/img')))  # Ajusta el XPath si es necesario
-fourth_checkbox.click()
+for checkbox_xpath in checkboxes:
+    checkbox = wait.until(EC.element_to_be_clickable((By.XPATH, checkbox_xpath)))
+    checkbox.click()
 
 # Paso 5: Hacer clic en el botón de "Ejecutar"
 ejecutar_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="ubigeo-ejecutar"]/button')))  # Ajusta el XPath si es necesario
@@ -50,21 +46,13 @@ ejecutar_button.click()
 
 # Paso 6: Extraer la tabla que aparece después de aplicar los filtros
 table = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "pvtTable")))
-
-# Obtener las filas de la tabla
 rows = table.find_elements(By.TAG_NAME, "tr")
 
 # Crear una lista para almacenar los datos
-data = []
-
-# Iterar sobre cada fila y extraer las celdas
-for row in rows:
-    cells = row.find_elements(By.TAG_NAME, "td")
-    if cells:  # Ignorar filas vacías
-        data.append([cell.text for cell in cells])
+data = [[cell.text for cell in row.find_elements(By.TAG_NAME, "td")] for row in rows if row.find_elements(By.TAG_NAME, "td")]
 
 # Convertir los datos en un DataFrame de pandas
-df = pd.DataFrame(data)
+df = pd.DataFrame(data).iloc[:, :-1]
 
 # Definir los encabezados manualmente (para las 18 columnas restantes)
 headers = [2000, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]
@@ -112,6 +100,43 @@ for idx in range(df.shape[0]):
 
 # Eliminar filas adicionales innecesarias
 df.drop(index=df.index[[107, 108]], inplace=True)
+
+# Reemplazar los NaN con el promedio de los valores numéricos en la misma fila
+for col in df.columns[2:]:  
+    df[col] = df[col].astype(str).replace('-', np.nan).str.replace(',', '.')
+    df[col] = pd.to_numeric(df[col], errors='coerce') 
+
+df.iloc[:, 2:] = df.iloc[:, 2:].apply(
+    lambda row: row.fillna(row.mean()), axis=1
+)
+
+# (Opcional) Volver a formatear los números con comas como separador decimal
+for col in df.columns[2:]:
+    df[col] = df[col].apply(lambda x: f"{x:.1f}".replace('.', ','))
+
+# Lista de las columnas de los años (como está en tu código)
+year_columns = [2000, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]
+
+# Convertir los valores a float correctamente, reemplazando comas por puntos
+for year in year_columns:
+    df[year] = df[year].str.replace(',', '.').astype(float)
+
+# Iterar sobre los departamentos
+for depto in df['Departamento'].unique():
+    # Filtrar las filas correspondientes a 'Leve', 'Moderada', 'Severa' para este departamento
+    rows_to_sum = df[(df['Departamento'] == depto) & (df['Indicador Anemia %'].isin(['Leve', 'Moderada', 'Severa']))]
+
+    # Filtrar la fila correspondiente a 'Total' para este departamento
+    total_row_idx = df[(df['Departamento'] == depto) & (df['Indicador Anemia %'] == 'Total')].index
+
+    if not rows_to_sum.empty and not total_row_idx.empty:
+        # Iterar sobre las columnas de los años
+        for year in year_columns:
+            # Sumar los valores de los indicadores 'Leve', 'Moderada', 'Severa' para el año en cuestión
+            total_value = rows_to_sum[year].sum(skipna=True)
+            
+            # Asignar la suma total al año correspondiente en la fila 'Total'
+            df.at[total_row_idx[0], year] = total_value
 
 # Mostrar el DataFrame
 print(df)
