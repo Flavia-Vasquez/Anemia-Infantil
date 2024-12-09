@@ -15,155 +15,22 @@
         <meta property="og:type" content="website">
         <meta property="og:url" content="">
         <meta property="og:image" content="">
-        <link rel="shortcut icon" href="assets/img/favicons/favicon.png">
-        <link rel="icon" type="image/png" sizes="192x192" href="assets/img/favicons/favicon-192x192.png">
-        <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicons/apple-touch-icon-180x180.png">
+        <link rel="shortcut icon" href="../static/img/favicons/favicon.png">
+        <link rel="icon" type="image/png" sizes="192x192" href="../static/img/favicons/favicon-192x192.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="../static/img/favicons/apple-touch-icon-180x180.png">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-        <link rel="stylesheet" id="css-main" href="assets/css/codebase.min.css">
+        <link rel="stylesheet" id="css-main" href="../static/css/codebase.min.css">
     </head>
     
     <body>
         <!-- Page Container -->
-        <div id="page-container" class="sidebar-o side-scroll page-header-modern main-content-boxed side-trans-enabled sidebar-inverse">
-            <!-- Side Overlay-->
-            <aside id="side-overlay">
-            </aside>
-            <!-- END Side Overlay -->
-
-            <!-- Sidebar -->
-            <nav id="sidebar">
-                <!-- Sidebar Scroll Container -->
-                <div id="sidebar-scroll">
-                    <!-- Sidebar Content -->
-                    <div class="sidebar-content">
-                        <!-- Side Header -->
-                        <div class="content-header content-header-fullrow px-15">
-                            <!-- Mini Mode -->
-                            <div class="content-header-section sidebar-mini-visible-b">
-                                <!-- Logo -->
-                                <span class="content-header-item font-w700 font-size-xl float-left animated fadeIn">
-                                    <span class="text-dual-primary-dark">c</span><span class="text-primary">b</span>
-                                </span>
-                                <!-- END Logo -->
-                            </div>
-                            <!-- END Mini Mode -->
-
-                            <!-- Normal Mode -->
-                            <div class="content-header-section text-center align-parent sidebar-mini-hidden">
-                                <!-- Close Sidebar, Visible only on mobile screens -->
-                                <!-- Layout API, functionality initialized in Codebase() -> uiApiLayout() -->
-                                <button type="button" class="btn btn-circle btn-dual-secondary d-lg-none align-v-r" data-toggle="layout" data-action="sidebar_close">
-                                    <i class="fa fa-times text-danger"></i>
-                                </button>
-                                <!-- END Close Sidebar -->
-
-                                <!-- Logo -->
-                                <div class="content-header-item">
-                                    <a class="link-effect font-w700" href="index.html">
-                                        <i class="si si-fire text-primary"></i>
-                                        <span class="font-size-xl text-dual-primary-dark">code</span><span class="font-size-xl text-primary">base</span>
-                                    </a>
-                                </div>
-                                <!-- END Logo -->
-                            </div>
-                            <!-- END Normal Mode -->
-                        </div>
-                        <!-- END Side Header -->
-
-                        <!-- Side User -->
-                        <div class="content-side content-side-full content-side-user px-10 align-parent">
-                            <!-- Visible only in mini mode -->
-                            <div class="sidebar-mini-visible-b align-v animated fadeIn">
-                                <img class="img-avatar img-avatar32" src="assets/img/avatars/avatar15.jpg" alt="">
-                            </div>
-                            <!-- END Visible only in mini mode -->
-
-                            <!-- Visible only in normal mode -->
-                            <div class="sidebar-mini-hidden-b text-center">
-                                <a class="img-link" href="be_pages_generic_profile.html">
-                                    <img class="img-avatar" src="assets/img/avatars/avatar15.jpg" alt="">
-                                </a>
-                                <ul class="list-inline mt-10">
-                                    <li class="list-inline-item">
-                                        <a class="link-effect text-dual-primary-dark font-size-xs font-w600 text-uppercase" href="be_pages_generic_profile.html">J. Smith</a>
-                                    </li>
-                                    <li class="list-inline-item">
-                                        <!-- Layout API, functionality initialized in Codebase() -> uiApiLayout() -->
-                                        <a class="link-effect text-dual-primary-dark" data-toggle="layout" data-action="sidebar_style_inverse_toggle" href="javascript:void(0)">
-                                            <i class="si si-drop"></i>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <!-- END Visible only in normal mode -->
-                        </div>
-                        <!-- END Side User -->
-
-                        <!-- Side Navigation -->
-                        <div class="content-side content-side-full">
-                            <ul class="nav-main">
-                                <li class="open">
-                                    <a class="nav-submenu" data-toggle="nav-submenu" href="#"><i class="si si-cup"></i><span class="sidebar-mini-hide">Dashboards</span></a>
-                                    <ul>
-                                        <li>
-                                            <a class="active" href="be_pages_dashboard.html">Dashboard 1</a>
-                                        </li>
-                                    </ul>
-                                </li>
-                                <li>
-                                    <a href="bd_dashboard.html"><i class="si si-compass"></i><span class="sidebar-mini-hide">Boxed Backend</span></a>
-                                </li>
-                                <li class="nav-main-heading"><span class="sidebar-mini-visible">BD</span><span class="sidebar-mini-hidden">Build</span></li>
-                                <li>
-                                    <a class="nav-submenu" data-toggle="nav-submenu" href="#"><i class="si si-vector"></i><span class="sidebar-mini-hide">Layout</span></a>
-                                    <ul>
-                                        <li>
-                                            <a class="nav-submenu" data-toggle="nav-submenu" href="#">General</a>
-                                            <ul>
-                                                <li>
-                                                    <a href="be_layout_default.html">Default</a>
-                                                </li>
-                                                <li>
-                                                    <a href="be_layout_flipped.html">Flipped</a>
-                                                </li>
-                                                <li>
-                                                    <a href="be_layout_native_scrolling.html">Native Scrolling</a>
-                                                </li>
-                                            </ul>
-                                        </li>
-                                    </ul>
-                                </li>
-                                <li>
-                                    <a class="nav-submenu" data-toggle="nav-submenu" href="#"><i class="si si-trophy"></i><span class="sidebar-mini-hide">Components</span></a>
-                                    <ul>
-                                        <li>
-                                            <a class="nav-submenu" data-toggle="nav-submenu" href="#"><span class="sidebar-mini-hide">Main Menu</span></a>
-                                        </li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
-                        <!-- END Side Navigation -->
-                    </div>
-                    <!-- Sidebar Content -->
-                </div>
-                <!-- END Sidebar Scroll Container -->
-            </nav>
-            <!-- END Sidebar -->
+        <div id="page-container" class="page-header-modern main-content-boxed side-trans-enabled sidebar-inverse">
 
             <!-- Header -->
             <header id="page-header">
                 <!-- Header Content -->
                 <div class="content-header">
-                    <!-- Left Section -->
-                    <div class="content-header-section">
-                        <!-- Toggle Sidebar -->
-                        <button type="button" class="btn btn-circle btn-dual-secondary" data-toggle="layout" data-action="sidebar_toggle">
-                            <i class="fa fa-navicon"></i>
-                        </button>
-                        <!-- END Toggle Sidebar -->
-                    </div>
-                    <!-- END Left Section -->
+
                 </div>
                 <!-- END Header Content -->
 
@@ -475,20 +342,20 @@
         <!-- END Page Container -->
 
         <!-- Codebase Core JS -->
-        <script src="assets/js/core/jquery.min.js"></script>
-        <script src="assets/js/core/popper.min.js"></script>
-        <script src="assets/js/core/bootstrap.min.js"></script>
-        <script src="assets/js/core/jquery.slimscroll.min.js"></script>
-        <script src="assets/js/core/jquery.scrollLock.min.js"></script>
-        <script src="assets/js/core/jquery.appear.min.js"></script>
-        <script src="assets/js/core/jquery.countTo.min.js"></script>
-        <script src="assets/js/core/js.cookie.min.js"></script>
-        <script src="assets/js/codebase.js"></script>
+        <script src="../static/js/core/jquery.min.js"></script>
+        <script src="../static/js/core/popper.min.js"></script>
+        <script src="../static/js/core/bootstrap.min.js"></script>
+        <script src="../static/js/core/jquery.slimscroll.min.js"></script>
+        <script src="../static/js/core/jquery.scrollLock.min.js"></script>
+        <script src="../static/js/core/jquery.appear.min.js"></script>
+        <script src="../static/js/core/jquery.countTo.min.js"></script>
+        <script src="../static/js/core/js.cookie.min.js"></script>
+        <script src="../static/js/codebase.js"></script>
 
         <!-- Page JS Plugins -->
-        <script src="assets/js/plugins/chartjs/Chart.bundle.min.js"></script>
+        <script src="../static/js/plugins/chartjs/Chart.bundle.min.js"></script>
 
         <!-- Page JS Code -->
-        <script src="assets/js/pages/be_pages_dashboard.js"></script>
+        <script src="../static/js/pages/be_pages_dashboard.js"></script>
     </body>
 </html>
