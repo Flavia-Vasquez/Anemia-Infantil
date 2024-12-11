@@ -2,8 +2,46 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from webscraping_v2 import obtener_datos_anemia
 
-# Establecer variable de los datos
+# Leer el archivo CSV
 df = obtener_datos_anemia()
+
+# Convertir los años a cadenas si es necesario e incluir el año 2000, pero excluir del 2001 al 2007
+year_columns = ['2000'] + [str(year) for year in range(2008, 2023 + 1)]
+valid_years = [year for year in year_columns if year != '2000']  # Años sin el 2000
+
+# Filtrar el DataFrame para valores "Total"
+df_total = df[df['Indicador Anemia %'] == 'Total']
+
+# Normalizar los nombres de los departamentos (primera letra mayúscula)
+lista_dptos = df_total['Departamento'].str.title()
+
+# Solicitar al usuario que seleccione un departamento
+departamentos_disponibles = lista_dptos.unique()
+print("Departamentos disponibles:")
+for idx, dept in enumerate(departamentos_disponibles):
+    print(f"{idx + 1}. {dept}")
+
+# Pedir al usuario seleccionar el número del departamento
+seleccion = int(input("Seleccione el número del departamento que desea visualizar: ")) - 1
+
+# Validar la selección
+if 0 <= seleccion < len(departamentos_disponibles):
+    departamento_seleccionado = departamentos_disponibles[seleccion]
+
+# Solicitar al usuario que seleccione un año específico
+print("Años disponibles:", ", ".join(year_columns))
+anio_seleccionado = input("Seleccione el año que desea visualizar: ")
+
+# Solicitar al usuario que seleccione un indicador
+indicadores_disponibles = df['Indicador Anemia %'].unique()
+print("Indicadores disponibles:")
+for idx, ind in enumerate(indicadores_disponibles):
+    print(f"{idx + 1}. {ind}")
+
+seleccion_indicador = int(input("Seleccione el número del indicador que desea visualizar: ")) - 1
+indicador_seleccionado = indicadores_disponibles[seleccion_indicador]
+
+# -----------------------------------------------------------------------------------------------------
 
 ## **Porcentaje de Anemia por Nivel y Departamento en el Año Seleccionado**
 # Función para generar el gráfico y la interpretación
@@ -45,9 +83,7 @@ def comparar_niveles_anemia(anio, departamento):
     print(f"- El nivel de anemia menos prevalente fue '{nivel_menor['Indicador']}' con una proporción de {nivel_menor['Proporción']}%.")
     
 # Ejemplo de uso
-""" anio = 2023
-departamento = 'AMAZONAS'
-comparar_niveles_anemia(anio, departamento) """
+comparar_niveles_anemia(anio_seleccionado, departamento_seleccionado) """
 
 # -----------------------------------------------------------------------------------------------------
 
@@ -100,13 +136,16 @@ def grafico_estadistico(departamento, indicador):
     Returns:
         fig (matplotlib.figure.Figure): Objeto de la figura generada.
     """
+    
     # Filtrar los datos por el departamento y el indicador
-    departamento_data = df[(df['Departamento'] == departamento) &
-                             (df['Indicador Anemia %'] == indicador)]
+    departamento_data = df[(df['Departamento'] == departamento) & (df['Indicador Anemia %'] == indicador)]
 
+    # Reemplazar NaN con 0 para los valores faltantes
     if departamento_data.empty:
-        raise ValueError(f"No se encontraron datos para el departamento '{departamento}' y el indicador '{indicador}'.")
-
+        valores = [0] * len(anios)
+    else:
+        valores = departamento_data[anios].fillna(0).values.flatten().tolist()  # Convertir a lista
+    
     # Extraer los años y los valores
     anios = [col for col in df.columns if isinstance(col, int)]
     valores = departamento_data[anios].values.flatten()
@@ -121,28 +160,6 @@ def grafico_estadistico(departamento, indicador):
     plt.tight_layout()
 
     return fig
-
-def interpretar_grafico(departamento, indicador):
-    """
-    Interpreta los datos para el gráfico basado en el departamento y el indicador seleccionados.
-
-    Args:
-        departamento (str): Nombre del departamento.
-        indicador (str): Indicador de anemia (e.g., 'Leve', 'Moderada', 'Severa', 'Total').
-
-    Returns:
-        str: Resumen interpretativo de los datos.
-    """
-    # Filtrar los datos
-    departamento_data = df[(df['Departamento'] == departamento) &
-                             (df['Indicador Anemia %'] == indicador)]
-
-    if departamento_data.empty:
-        return f"No se encontraron datos para el departamento '{departamento}' y el indicador '{indicador}'."
-
-    # Extraer años y valores
-    anios = [col for col in df.columns if isinstance(col, int)]
-    valores = departamento_data[anios].values.flatten()
 
     # Calcular estadísticas clave
     valor_min = valores.min()
@@ -161,10 +178,46 @@ def interpretar_grafico(departamento, indicador):
 
     return resumen
 
-# Crear un gráfico de ejemplo para "AMAZONAS" y el indicador "Total"
-""" example_stat_fig = grafico_estadistico('AYACUCHO', 'Leve')
-plt.show() """
+# Crear un gráfico
+grafico = grafico_estadistico(departamento_seleccionado, indicador_seleccionado)
+print(grafico)
 
-# Generar interpretación para "AMAZONAS" y "Total"
-""" interpretacion = interpretar_grafico('AMAZONAS', 'Leve')
-print(interpretacion) """
+#-------------------------------------------------------------------------------------------------------------------------------------
+
+# Función para graficar el análisis temporal excluyendo el año 2000
+def plot_analisis_temporal(departamento):
+    dept_data = df_total[lista_dptos == departamento]
+    plt.plot(valid_years, dept_data[valid_years].values[0], label=departamento)
+    plt.title(f'Tendencia de Anemia en {departamento} (2008-2023)')
+    plt.xlabel('Año')
+    plt.ylabel('Porcentaje de Anemia')
+    plt.grid(True)
+    plt.legend()
+
+    # Ajustar la rotación y el tamaño de las etiquetas del eje x
+    plt.xticks(rotation=45, fontsize=10)
+    plt.tight_layout()  # Asegurar que los elementos no se corten
+        
+    # Guardar el gráfico como archivo PNG
+    output_filename = f"Tendencia_Anemia_{departamento}_2008_2023.png"
+    plt.savefig(output_filename, dpi=300, bbox_inches='tight')
+    print(f"Gráfico guardado como: {output_filename}")
+
+    # Mostrar el gráfico
+    plt.show()
+
+    # Interpretación de los datos
+    print(f"\nInterpretación de los datos para el departamento {departamento_seleccionado}:")
+    print(f"Desde el año 2008 hasta el año 2023, se ha observado una tendencia en los porcentajes de anemia en el departamento de {departamento_seleccionado}.")
+        
+    max_anemia = dept_data[year_columns].values[0].max()
+    min_anemia = dept_data[year_columns].values[0].min()
+        
+    # Encontrar los años correspondientes a los valores máximo y mínimo
+    year_max = year_columns[dept_data[year_columns].values[0].argmax()]
+    year_min = year_columns[dept_data[year_columns].values[0].argmin()]
+        
+    print(f"El valor máximo de anemia fue {max_anemia:.2f}% en el año {year_max} y el valor mínimo fue {min_anemia:.2f}% en el año {year_min}.")
+    
+# Generar el primer gráfico
+analisis_temporal(departamento_seleccionado)
