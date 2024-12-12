@@ -221,3 +221,129 @@ def plot_analisis_temporal(departamento):
     
 # Generar el primer gráfico
 analisis_temporal(departamento_seleccionado)
+
+
+# Correlacion y regresion
+# Cortegana - Encinas
+# se decidio hacerlo juntos, ya q hay se relaccionan mucho ambos analisis
+
+import pandas as pd
+import numpy as np
+from scipy.stats import pearsonr
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
+# Función para preparar los datos en un formato adecuado
+def prepare_data(raw_df):
+    # Pivotar la tabla para que los indicadores sean columnas
+    df = raw_df.pivot(index=['DEPARTAMENTO', 'AÑO'], columns='INDICADOR', values='VALOR').reset_index()
+    return df
+
+# Función para analizar tendencias temporales
+def trend_analysis(df):
+    print("\nAnálisis de tendencias temporales:")
+    departamento = input("Seleccione el departamento: ")
+    indicador = input("Seleccione el indicador: ")
+
+    data = df[(df['DEPARTAMENTO'] == departamento) & (df[indicador].notnull())]
+
+    if data.empty:
+        print("\nNo hay suficientes datos para realizar el análisis.")
+        return
+
+    X = data[['AÑO']].values.reshape(-1, 1)
+    Y = data[indicador].values.reshape(-1, 1)
+    model = LinearRegression()
+    model.fit(X, Y)
+
+    slope = model.coef_[0][0]
+    intercept = model.intercept_[0]
+    r2 = r2_score(Y, model.predict(X))
+
+    print(f"\nTendencia: {indicador} = {slope:.4f} * AÑO + {intercept:.4f}")
+    print(f"Coeficiente de determinación R²: {r2:.4f}")
+
+# Función para predicción de valores futuros
+def future_prediction(df):
+    print("\nPredicción de valores futuros:")
+    departamento = input("Seleccione el departamento: ")
+    indicador = input("Seleccione el indicador: ")
+
+    data = df[(df['DEPARTAMENTO'] == departamento) & (df[indicador].notnull())]
+
+    if data.empty:
+        print("\nNo hay suficientes datos para realizar la predicción.")
+        return
+
+    X = data[['AÑO']].values.reshape(-1, 1)
+    Y = data[indicador].values.reshape(-1, 1)
+    model = LinearRegression()
+    model.fit(X, Y)
+
+    try:
+        future_year = int(input("Ingrese el año para el cual desea predecir el valor: "))
+        prediction = model.predict([[future_year]])[0][0]
+        print(f"\nPredicción: En el año {future_year}, {indicador} será aproximadamente {prediction:.4f}")
+    except ValueError:
+        print("\nAño inválido.")
+
+# Función para evaluar relaciones entre indicadores
+def relationship_analysis(df):
+    print("\nEvaluación de relaciones entre indicadores:")
+    indicador_x = input("Seleccione el primer indicador (X): ")
+    indicador_y = input("Seleccione el segundo indicador (Y): ")
+
+    data = df[[indicador_x, indicador_y]].dropna()
+
+    if data.empty:
+        print("\nNo hay suficientes datos para evaluar la relación.")
+        return
+
+    correlation, p_value = pearsonr(data[indicador_x], data[indicador_y])
+    print(f"\nCorrelación de Pearson entre {indicador_x} y {indicador_y}: {correlation:.4f}")
+    print(f"Valor p: {p_value:.4e}")
+    if p_value < 0.05:
+        print("La correlación es estadísticamente significativa.")
+    else:
+        print("La correlación no es estadísticamente significativa.")
+
+# Función para comparar tendencias entre departamentos
+def compare_departments(df):
+    print("\nComparación de tendencias entre departamentos:")
+    indicador = input("Seleccione el indicador: ")
+
+    unique_departments = df['DEPARTAMENTO'].unique()
+
+    for departamento in unique_departments:
+        data = df[(df['DEPARTAMENTO'] == departamento) & (df[indicador].notnull())]
+
+        if not data.empty:
+            X = data[['AÑO']].values.reshape(-1, 1)
+            Y = data[indicador].values.reshape(-1, 1)
+            model = LinearRegression()
+            model.fit(X, Y)
+
+            slope = model.coef_[0][0]
+            print(f"{departamento}: Pendiente de la tendencia = {slope:.4f}")
+
+# Crear una función para realizar la correlación y regresión lineal
+def analyze_data(df):
+    print("\nSeleccione el análisis que desea realizar:")
+    print("1. Análisis de tendencias temporales")
+    print("2. Predicción de valores futuros")
+    print("3. Evaluación de relaciones entre indicadores")
+    print("4. Comparación de tendencias entre departamentos")
+
+    choice = input("Ingrese el número de su elección: ")
+
+    if choice == '1':
+        trend_analysis(df)
+    elif choice == '2':
+        future_prediction(df)
+    elif choice == '3':
+        relationship_analysis(df)
+    elif choice == '4':
+        compare_departments(df)
+    else:
+        print("\nOpción inválida. Por favor, intente de nuevo.")
+
