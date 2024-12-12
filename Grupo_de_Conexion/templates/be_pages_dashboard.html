@@ -30,7 +30,37 @@
             <header id="page-header">
                 <!-- Header Content -->
                 <div class="content-header">
-
+                    <div class="d-flex">
+                        <div class="dropdown d-inline-block mr-2">
+                            <button type="button" class="btn btn-outline-primary dropdown-toggle" id="dropdown-department" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Seleccione Departamento
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdown-department">
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="selectDepartment('Amazonas')">Amazonas</a>
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="selectDepartment('Áncash')">Áncash</a>
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="selectDepartment('Apurímac')">Apurímac</a>
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="selectDepartment('Arequipa')">Arequipa</a>
+                            </div>
+                        </div>
+                
+                        <div class="dropdown d-inline-block mr-2">
+                            <button type="button" class="btn btn-outline-primary dropdown-toggle" id="dropdown-year" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Seleccione Año
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdown-year">
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="selectYear(2008)">2008</a>
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="selectYear(2009)">2009</a>
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="selectYear(2010)">2010</a>
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="selectYear(2011)">2011</a>
+                            </div>
+                        </div>
+                
+                        <button type="submit" class="btn btn-primary" data-toggle="click-ripple">Filtrar</button>
+                
+                        <button id="boton-descargar-pdf" class="btn" style="position: absolute; top: 30px; right: 100px;">
+                            Generar Reporte
+                        </button>
+                    </div>
                 </div>
                 <!-- END Header Content -->
 
