@@ -1,5 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import io
+import base64
 from webscraping_v2 import obtener_datos_anemia
 
 # Leer el archivo CSV
@@ -15,40 +17,18 @@ df_total = df[df['Indicador Anemia %'] == 'Total']
 # Normalizar los nombres de los departamentos (primera letra mayúscula)
 lista_dptos = df_total['Departamento'].str.title()
 
-# Solicitar al usuario que seleccione un departamento
-departamentos_disponibles = lista_dptos.unique()
-print("Departamentos disponibles:")
-for idx, dept in enumerate(departamentos_disponibles):
-    print(f"{idx + 1}. {dept}")
 
-# Pedir al usuario seleccionar el número del departamento
-seleccion = int(input("Seleccione el número del departamento que desea visualizar: ")) - 1
 
-# Validar la selección
-if 0 <= seleccion < len(departamentos_disponibles):
-    departamento_seleccionado = departamentos_disponibles[seleccion]
-
-# Solicitar al usuario que seleccione un año específico
-print("Años disponibles:", ", ".join(year_columns))
-anio_seleccionado = input("Seleccione el año que desea visualizar: ")
-
-# Solicitar al usuario que seleccione un indicador
-indicadores_disponibles = df['Indicador Anemia %'].unique()
-print("Indicadores disponibles:")
-for idx, ind in enumerate(indicadores_disponibles):
-    print(f"{idx + 1}. {ind}")
-
-seleccion_indicador = int(input("Seleccione el número del indicador que desea visualizar: ")) - 1
-indicador_seleccionado = indicadores_disponibles[seleccion_indicador]
 
 # -----------------------------------------------------------------------------------------------------
 
 ## **Porcentaje de Anemia por Nivel y Departamento en el Año Seleccionado**
 # Función para generar el gráfico y la interpretación
+## Función para generar el gráfico de proporciones de anemia
 def comparar_niveles_anemia(anio, departamento):
     # Filtrar datos por año y departamento
     df_anio = df[['Departamento', 'Indicador Anemia %', anio]]
-    df_filtrado = df_anio[df_anio['Departamento'].str.upper() == departamento.upper()]
+    df_filtrado = df_anio[df_anio['Departamento'].str.title() == departamento.title()]  # Normalizar a título
     
     # Excluir la categoría 'Total'
     df_filtrado = df_filtrado[df_filtrado['Indicador Anemia %'] != 'Total']
@@ -56,34 +36,47 @@ def comparar_niveles_anemia(anio, departamento):
     # Renombrar las columnas para claridad
     df_filtrado.columns = ['Departamento', 'Indicador', 'Proporción']
     
-    # Crear el gráfico
-    plt.figure(figsize=(8, 5))
-    bars = plt.bar(df_filtrado['Indicador'], df_filtrado['Proporción'], color=['#6495ED', '#FFA07A', '#8A2BE2'])
+    # Calcular el porcentaje de "No tiene anemia"
+    total_proporcion = df_filtrado['Proporción'].sum()
+    no_anemia = 100 - total_proporcion  # Suponiendo que los porcentajes son sobre 100%
     
-    # Agregar etiquetas encima de las barras
-    for bar in bars:
-        plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height(), f"{bar.get_height():.1f}%", 
-                 ha='center', va='bottom', fontsize=10)
+    # Crear un nuevo DataFrame para "No tiene anemia"
+    df_no_anemia = pd.DataFrame({'Indicador': ['No tiene\nanemia'], 'Proporción': [no_anemia]})
     
-    # Personalizar el gráfico
-    plt.title(f'Porcentaje de Anemia por Nivel en {anio}\nDepartamento: {departamento}', fontsize=14)
-    plt.xlabel('Nivel de Anemia', fontsize=12)
-    plt.ylabel('Porcentaje (%)', fontsize=12)
-    plt.grid(axis='y', linestyle='--', alpha=0.6)
-    plt.tight_layout()
-    plt.show()
-
-    # Interpretación textual
-    nivel_mayor = df_filtrado.loc[df_filtrado['Proporción'].idxmax()]
+    # Concatenar el DataFrame original con el nuevo DataFrame
+    df_filtrado = pd.concat([df_filtrado, df_no_anemia], ignore_index=True)
+    
+    # Filtro para evitar considerar 'No tiene anemia' en el nivel más prevalente
+    df_filtrado_sin_no_anemia = df_filtrado[df_filtrado['Indicador'] != 'No tiene\nanemia']
+    
+    # Verificar si hay al menos un nivel de anemia para no generar error
+    if df_filtrado_sin_no_anemia.empty:
+        return None, "No hay datos suficientes para generar la interpretación."
+    
+    # Obtener el nivel más prevalente y menos prevalente
+    nivel_mayor = df_filtrado_sin_no_anemia.loc[df_filtrado_sin_no_anemia['Proporción'].idxmax()]
     nivel_menor = df_filtrado.loc[df_filtrado['Proporción'].idxmin()]
     
-    print("\n--- INTERPRETACIÓN ---")
-    print(f"En el año {anio}, en el departamento de {departamento}:\n")
-    print(f"- El nivel de anemia más prevalente fue '{nivel_mayor['Indicador']}' con una proporción de {nivel_mayor['Proporción']}%.")
-    print(f"- El nivel de anemia menos prevalente fue '{nivel_menor['Indicador']}' con una proporción de {nivel_menor['Proporción']}%.")
+    interpretacion = f"""
+    En el año {anio}, en el departamento de {departamento}:
+    El nivel de anemia más prevalente fue '{nivel_mayor['Indicador']}' con una proporción de {nivel_mayor['Proporción']}%.
+    El nivel de anemia menos prevalente fue '{nivel_menor['Indicador']}' con una proporción de {nivel_menor['Proporción']}%.
+    """
     
-# Ejemplo de uso
-comparar_niveles_anemia(anio_seleccionado, departamento_seleccionado) """
+    # Crear el gráfico circular
+    plt.figure(figsize=(4, 4))  # Ajustar el tamaño de la figura
+    plt.pie(df_filtrado['Proporción'], labels=df_filtrado['Indicador'], autopct='%1.1f%%', startangle=90, 
+            colors=['#44a4f4', '#FFA07A', '#d475ee', '#a0df61'])  # Colores personalizados
+    plt.axis('equal')  # Para que el gráfico sea un círculo
+        
+    # Guardar el gráfico en memoria y codificar en base64
+    img = io.BytesIO()
+    plt.savefig(img, format='png', bbox_inches='tight', dpi=800)  # Ajustar el tamaño y la resolución
+    img.seek(0)
+    img_base64 = base64.b64encode(img.getvalue()).decode()
+    plt.close()  # Limpiar el gráfico después de generarlo
+
+    return img_base64, interpretacion 
 
 # -----------------------------------------------------------------------------------------------------
 
@@ -178,10 +171,6 @@ def grafico_estadistico(departamento, indicador):
 
     return resumen
 
-# Crear un gráfico
-grafico = grafico_estadistico(departamento_seleccionado, indicador_seleccionado)
-print(grafico)
-
 #-------------------------------------------------------------------------------------------------------------------------------------
 
 # Función para graficar el análisis temporal excluyendo el año 2000
@@ -219,8 +208,7 @@ def plot_analisis_temporal(departamento):
         
     print(f"El valor máximo de anemia fue {max_anemia:.2f}% en el año {year_max} y el valor mínimo fue {min_anemia:.2f}% en el año {year_min}.")
     
-# Generar el primer gráfico
-analisis_temporal(departamento_seleccionado)
+
 
 
 # Correlacion y regresion
@@ -347,3 +335,45 @@ def analyze_data(df):
     else:
         print("\nOpción inválida. Por favor, intente de nuevo.")
 
+# Nueva función para graficar anemia interactivo
+def graficar_anemia_interactivo(anio):
+    """
+    Genera un gráfico de barras con la suma de porcentajes de anemia total por departamento para el año seleccionado.
+    Devuelve la imagen en formato base64.
+    """
+    # Normalizar los nombres de los departamentos (primera letra mayúscula)
+    df['Departamento'] = df['Departamento'].str.title()
+    
+    # Filtrar los datos para el año seleccionado
+    df_filtrado = df[df[anio].notnull()]  # Asegurarse de que haya datos para el año seleccionado
+    
+    if df_filtrado.empty:
+        print(f"No hay datos disponibles para el año {anio}.")
+        return None
+    
+    # Asegurarse de que los datos sean numéricos
+    df_filtrado[anio] = pd.to_numeric(df_filtrado[anio], errors='coerce')
+    
+    # Agrupar por departamento y sumar los porcentajes de anemia
+    df_agrupado = df_filtrado.groupby('Departamento')[anio].sum().reset_index()
+    
+    # Crear el gráfico de barras
+    plt.figure(figsize=(10, 6))
+    plt.bar(df_agrupado['Departamento'], df_agrupado[anio].astype(float), color='skyblue', edgecolor='black')
+    
+    # Personalizar el gráfico
+    plt.title(f"Porcentaje Total de Anemia por Departamento en {anio}", fontsize=14)
+    plt.xlabel("Departamentos", fontsize=12)
+    plt.ylabel("Porcentaje Total (%)", fontsize=12)
+    plt.xticks(rotation=45, ha='right', fontsize=10)
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    
+    # Guardar el gráfico en memoria y codificar en base64
+    img = io.BytesIO()
+    plt.savefig(img, format='png', bbox_inches='tight', dpi=800)  # Ajustar el tamaño y la resolución
+    img.seek(0)
+    img_base64 = base64.b64encode(img.getvalue()).decode()
+    plt.close()  # Limpiar el gráfico después de generarlo
+
+    return img_base64
