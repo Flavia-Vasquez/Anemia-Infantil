@@ -115,4 +115,35 @@ Se realizaron modificaciones significativas al código HTML del dashboard origin
 
 Estas modificaciones mejoraron la funcionalidad del dashboard, permitiendo una interacción más intuitiva y personalizada para el análisis de anemia infantil.
 
+## Descripción del Código (app.py)
+### El archivo principal del proyecto, denominado app.py, contiene la lógica necesaria para ejecutar la aplicación web. A continuación, se detallan los componentes clave de este archivo:
+
+### Framework Flask: Utilizado para definir y gestionar la aplicación web.
+### Ruta principal (/): Esta ruta renderiza la página HTML que alberga el dashboard, identificado como be_pages_dashboard.html.
+### Integración con Web Scraping: El archivo importa el módulo webscraping_v2, el cual se encarga de la recolección de datos sobre anemia a través de técnicas de web scraping.
+
+### A continuación se presenta un fragmento representativo del código implementado:
+from flask import Flask, render_template
+from webscraping_v2 import obtener_datos_anemia
+
+### Inicialización de la aplicación Flask
+app = Flask(__name__)
+
+### Ruta principal que renderiza la página del dashboard
+@app.route('/')
+def index():
+    ### Renderiza la página HTML del dashboard
+    return render_template('be_pages_dashboard.html')
+
+### Ejecuta la aplicación en modo de depuración
+if __name__ == '__main__':
+    app.run(debug=True)
+### Explicación de la Estructura del Proyecto
+La estructura del proyecto se organiza de la siguiente manera:
+
+├── app.py                    # Archivo principal que contiene la configuración de Flask y las rutas de la aplicación.
+├── templates/
+│   └── be_pages_dashboard.html # Página HTML que se muestra al usuario, representando el dashboard.
+├── static/                   # Contiene los archivos estáticos como imágenes, hojas de estilo (CSS) y scripts (JS).
+├── webscraping_v2.py         # Módulo responsable de realizar el scraping y obtener los datos sobre anemia.
 
