@@ -114,7 +114,7 @@ Se realizaron modificaciones significativas al código HTML del dashboard origin
     ```
 
 Estas modificaciones mejoraron la funcionalidad del dashboard, permitiendo una interacción más intuitiva y personalizada para el análisis de anemia infantil.
-
+```
 ## Descripción del Código (app.py)
 ### El archivo principal del proyecto, denominado app.py, contiene la lógica necesaria para ejecutar la aplicación web. A continuación, se detallan los componentes clave de este archivo:
 
