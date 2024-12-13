@@ -78,7 +78,48 @@ def comparar_niveles_anemia(anio, departamento):
 
     return img_base64, interpretacion 
 
-# -----------------------------------------------------------------------------------------------------
+# Nueva función para graficar anemia interactivo
+def graficar_anemia_interactivo(anio):
+    """
+    Genera un gráfico de barras con la suma de porcentajes de anemia total por departamento para el año seleccionado.
+    Devuelve la imagen en formato base64.
+    """
+    # Normalizar los nombres de los departamentos (primera letra mayúscula)
+    df['Departamento'] = df['Departamento'].str.title()
+    
+    # Filtrar los datos para el año seleccionado
+    df_filtrado = df[df[anio].notnull()]  # Asegurarse de que haya datos para el año seleccionado
+    
+    if df_filtrado.empty:
+        print(f"No hay datos disponibles para el año {anio}.")
+        return None
+    
+    # Asegurarse de que los datos sean numéricos
+    df_filtrado[anio] = pd.to_numeric(df_filtrado[anio], errors='coerce')
+    
+    # Agrupar por departamento y sumar los porcentajes de anemia
+    df_agrupado = df_filtrado.groupby('Departamento')[anio].sum().reset_index()
+    
+    # Crear el gráfico de barras
+    plt.figure(figsize=(10, 6))
+    plt.bar(df_agrupado['Departamento'], df_agrupado[anio].astype(float), color='skyblue', edgecolor='black')
+    
+    # Personalizar el gráfico
+    plt.title(f"Porcentaje Total de Anemia por Departamento en {anio}", fontsize=14)
+    plt.xlabel("Departamentos", fontsize=12)
+    plt.ylabel("Porcentaje Total (%)", fontsize=12)
+    plt.xticks(rotation=45, ha='right', fontsize=10)
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    
+    # Guardar el gráfico en memoria y codificar en base64
+    img = io.BytesIO()
+    plt.savefig(img, format='png', bbox_inches='tight', dpi=800)  # Ajustar el tamaño y la resolución
+    img.seek(0)
+    img_base64 = base64.b64encode(img.getvalue()).decode()
+    plt.close()  # Limpiar el gráfico después de generarlo
+
+    return img_base64
 
 # Filtrar datos relevantes (sin columnas categóricas para el análisis numérico)
 """ numeric_data = df.iloc[:, 2:] """
