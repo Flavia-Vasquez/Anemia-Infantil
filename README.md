@@ -118,9 +118,9 @@ Estas modificaciones mejoraron la funcionalidad del dashboard, permitiendo una i
 ## Descripción del Código (app.py)
 El archivo principal del proyecto, denominado app.py, contiene la lógica necesaria para ejecutar la aplicación web. A continuación, se detallan los componentes clave de este archivo:
 
-Framework Flask: Utilizado para definir y gestionar la aplicación web.
-Ruta principal (/): Esta ruta renderiza la página HTML que alberga el dashboard, identificado como be_pages_dashboard.html.
-Integración con Web Scraping: El archivo importa el módulo webscraping_v2, el cual se encarga de la recolección de datos sobre anemia a través de técnicas de web scraping.
+- **Framework Flask**: Utilizado para definir y gestionar la aplicación web. 
+- **Ruta principal (/)**: Esta ruta renderiza la página HTML que alberga el dashboard, identificado como be_pages_dashboard.html.
+- **Integración con Web Scraping**: El archivo importa el módulo webscraping_v2, el cual se encarga de la recolección de datos sobre anemia a través de técnicas de web scraping.
 
 A continuación se presenta un fragmento representativo del código implementado:
 ```python
